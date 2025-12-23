@@ -9,6 +9,7 @@ import ContentUpload from '../pages/admin/ContentUpload';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import { useAuth } from '../context/AuthContext';
 import ExamGenerator from '../pages/admin/ExamGenerator';
+import ExamDetails from '../pages/admin/ExamDetails';
 
 const AppRoutes = () => {
   const { user, isAuthenticated } = useAuth();
@@ -49,6 +50,10 @@ const AppRoutes = () => {
         <Route 
           path="/admin/exams/create" 
           element={user?.role === 'admin' ? <ExamGenerator /> : <Navigate to="/dashboard" />} 
+        />
+        <Route 
+          path="/admin/exams/:id" 
+          element={user?.role === 'admin' ? <ExamDetails /> : <Navigate to="/dashboard" />} 
         />
       </Route>
       

@@ -22,8 +22,37 @@ export class UsersService {
         return user ? (user.toObject() as User) : undefined;
     }
 
-    async findAll(): Promise<User[]> {
-        return this.userModel.find().exec();
+    async findAll(query: any = {}): Promise<any> {
+        const { page = 1, limit = 10, search, role } = query;
+        const skip = (page - 1) * limit;
+        const filter: any = {};
+
+        if (role) filter.role = role;
+        if (search) {
+            filter.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { email: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        const [users, total] = await Promise.all([
+            this.userModel.find(filter)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(Number(limit))
+                .exec(),
+            this.userModel.countDocuments(filter).exec()
+        ]);
+
+        return {
+            data: users,
+            meta: {
+                total,
+                page: Number(page),
+                limit: Number(limit),
+                pages: Math.ceil(total / limit)
+            }
+        };
     }
 
     async update(id: string, updateData: any): Promise<User> {

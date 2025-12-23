@@ -4,7 +4,12 @@ import { ENDPOINTS } from '../api/endpoints';
 export const usersService = {
     getAllUsers: async () => {
         const response = await axiosInstance.get(ENDPOINTS.USERS.LIST);
-        return response.data.data || response.data;
+        const body = response.data;
+        // Handle paginated response: { data: { data: [], meta: {} } }
+        if (body.data && body.data.data && Array.isArray(body.data.data)) {
+            return body.data.data;
+        }
+        return body.data || [];
     },
 
     updateRole: async (id: string, role: string) => {

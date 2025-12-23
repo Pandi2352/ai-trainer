@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Request, Query } from '@nestjs/common';
 import { ExamsService } from './exams.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -33,9 +33,9 @@ export class ExamsController {
     }
 
     @Get()
-    @ApiOperation({ summary: 'Get all exams' })
-    findAll() {
-        return this.examsService.findAll();
+    @ApiOperation({ summary: 'Get all exams with pagination' })
+    findAll(@Query() query: any) {
+        return this.examsService.findAll(query);
     }
 
     @Get(':id')

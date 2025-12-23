@@ -1,34 +1,18 @@
-import { useEffect, useState } from 'react';
-import { Table, Button, Select, Modal, Form, Input, message, Tag } from 'antd';
+import { useState } from 'react';
+import { Button, Select, Modal, Form, Input, message, Tag } from 'antd';
 import { usersService } from '../../services/users.service';
+import DataTable from '../../components/common/DataTable';
 
 const UserManagement = () => {
-    const [users, setUsers] = useState([]);
-    const [loading, setLoading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [form] = Form.useForm();
-
-    const fetchUsers = async () => {
-        setLoading(true);
-        try {
-            const data = await usersService.getAllUsers();
-            setUsers(data);
-        } catch (error) {
-            message.error('Failed to fetch users');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchUsers();
-    }, []);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     const handleRoleChange = async (userId: string, newRole: string) => {
         try {
             await usersService.updateRole(userId, newRole);
             message.success('Role updated successfully');
-            fetchUsers();
+            setRefreshTrigger(prev => prev + 1);
         } catch (error) {
             message.error('Failed to update role');
         }
@@ -37,14 +21,11 @@ const UserManagement = () => {
     const handleInvite = async (values: any) => {
         try {
             await usersService.inviteUser(values.email, values.role);
-            message.success('User added successfully');
+            message.success('User invited successfully');
             setIsModalOpen(false);
             form.resetFields();
-            fetchUsers();
-            fetchUsers();
+            setRefreshTrigger(prev => prev + 1);
         } catch (error: any) {
-            // Error message from interceptor is already formatted
-            // But we can be specific if needed
             if (error.response?.status === 409) {
                  message.error('User with this email already exists!');
             } else {
@@ -58,6 +39,7 @@ const UserManagement = () => {
             title: 'Name',
             dataIndex: 'name',
             key: 'name',
+            render: (text: string) => <span className="font-medium">{text || 'Pending Invitation'}</span>
         },
         {
             title: 'Email',
@@ -73,6 +55,7 @@ const UserManagement = () => {
                     defaultValue={role}
                     style={{ width: 120 }}
                     onChange={(value) => handleRoleChange(record._id, value)}
+                    onClick={(e) => e.stopPropagation()} 
                 >
                     <Select.Option value="admin">Admin</Select.Option>
                     <Select.Option value="trainee">Trainee</Select.Option>
@@ -82,7 +65,11 @@ const UserManagement = () => {
         {
             title: 'Status',
             key: 'status',
-            render: () => <Tag color="green">Active</Tag>, // Placeholder
+            render: (_: any, record: any) => (
+                <Tag color={record.password ? "green" : "orange"}>
+                    {record.password ? "Active" : "Invited"}
+                </Tag>
+            ),
         },
     ];
 
@@ -95,10 +82,27 @@ const UserManagement = () => {
                 </Button>
             </div>
 
-            <Table dataSource={users} columns={columns} loading={loading} rowKey="_id" />
+            <div className="bg-white p-6 rounded shadow-sm">
+                <DataTable 
+                    apiEndpoint="/users" 
+                    columns={columns} 
+                    refreshTrigger={refreshTrigger}
+                    searchable={true}
+                    filters={[
+                        { 
+                            key: 'role', 
+                            label: 'Role', 
+                            options: [
+                                { label: 'Admin', value: 'admin' }, 
+                                { label: 'Trainee', value: 'trainee' }
+                            ] 
+                        }
+                    ]}
+                />
+            </div>
 
             <Modal
-                title="Add New User"
+                title="Invite New User"
                 open={isModalOpen}
                 onCancel={() => setIsModalOpen(false)}
                 footer={null}
@@ -123,7 +127,7 @@ const UserManagement = () => {
                     </Form.Item>
                     <Form.Item>
                         <Button type="primary" htmlType="submit" block>
-                            Add User
+                            Send Invitation
                         </Button>
                     </Form.Item>
                 </Form>

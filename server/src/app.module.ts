@@ -11,6 +11,7 @@ import { InviteModule } from './modules/invite/invite.module';
 import { ContentModule } from './modules/content/content.module';
 import { AiModule } from './modules/ai/ai.module';
 import { ExamsModule } from './modules/exams/exams.module';
+import { AssignmentsModule } from './modules/assignments/assignments.module';
 
 @Module({
   imports: [
@@ -30,9 +31,9 @@ import { ExamsModule } from './modules/exams/exams.module';
     DomainModule,
     InviteModule,
     ContentModule,
-    ContentModule,
     AiModule,
     ExamsModule,
+    AssignmentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

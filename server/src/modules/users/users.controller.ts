@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Patch, Body, Param, UseGuards, Request, Query } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -15,9 +15,9 @@ export class UsersController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin')
     @Get()
-    @ApiOperation({ summary: 'List all users (Admin only)' })
-    findAll() {
-        return this.usersService.findAll();
+    @ApiOperation({ summary: 'List all users with pagination (Admin only)' })
+    findAll(@Query() query: any) {
+        return this.usersService.findAll(query);
     }
 
     @UseGuards(JwtAuthGuard, RolesGuard)

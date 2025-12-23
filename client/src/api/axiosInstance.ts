@@ -37,9 +37,9 @@ axiosInstance.interceptors.response.use(
             error.message = data.message || error.message;
 
             if (status === 401) {
-                // Optional: Auto logout
-                // localStorage.removeItem('user');
-                // window.location.href = '/login';
+                // Auto logout
+                localStorage.removeItem('user');
+                window.location.href = '/login';
             }
         }
         return Promise.reject(error);

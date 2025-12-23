@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Card, Button, Form, Input, Select, InputNumber, Checkbox, message, Steps, Result, Tag } from 'antd';
-import { RobotOutlined, CheckCircleOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { Card, Button, Form, Input, Select, InputNumber, Checkbox, message, Steps, Result, Tag, DatePicker, Table } from 'antd';
+import { RobotOutlined, CheckCircleOutlined, ThunderboltOutlined, UserAddOutlined } from '@ant-design/icons';
 import axiosInstance from '../../api/axiosInstance';
 import { useNavigate } from 'react-router-dom';
+import { usersService } from '../../services/users.service';
+import dayjs from 'dayjs';
 
 const { Option } = Select;
 
@@ -11,8 +13,28 @@ const ExamGenerator = () => {
     const [loading, setLoading] = useState(false);
     const [generatedExam, setGeneratedExam] = useState<any>(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [users, setUsers] = useState<any[]>([]);
+    const [selectedUserIds, setSelectedUserIds] = useState<React.Key[]>([]);
+    const [deadline, setDeadline] = useState<dayjs.Dayjs | null>(null);
+    const [assigning, setAssigning] = useState(false);
     const [form] = Form.useForm();
     const navigate = useNavigate();
+
+    // Fetch users when entering Assign step
+    useEffect(() => {
+        if (currentStep === 2) {
+            const fetchUsers = async () => {
+                try {
+                    const data = await usersService.getAllUsers();
+                    // Filter out admins if strictly assigning to trainees, but maybe optional
+                    setUsers(data.filter((u: any) => u.role !== 'admin'));
+                } catch (error) {
+                    message.error('Failed to load users');
+                }
+            };
+            fetchUsers();
+        }
+    }, [currentStep]);
 
     // Polling Logic
     useEffect(() => {
@@ -87,7 +109,42 @@ const ExamGenerator = () => {
 
     const stepItems = [
         { title: 'Configure Assessment', icon: <RobotOutlined /> },
-        { title: 'Review & Publish', icon: <CheckCircleOutlined /> }
+        { title: 'Review & Publish', icon: <CheckCircleOutlined /> },
+        { title: 'Assign to Trainees', icon: <UserAddOutlined /> }
+    ];
+
+
+    const handleAssign = async () => {
+        if (selectedUserIds.length === 0) {
+            message.error('Please select at least one trainee');
+            return;
+        }
+        if (!deadline) {
+            message.error('Please set a deadline');
+            return;
+        }
+
+        setAssigning(true);
+        try {
+            await axiosInstance.post('/assignments', {
+                examId: generatedExam._id,
+                userIds: selectedUserIds,
+                deadline: deadline.toDate(),
+            });
+            message.success('Exam assigned successfully!');
+            navigate('/admin/dashboard');
+        } catch (error) {
+            console.error(error);
+            message.error('Failed to assign exam');
+        } finally {
+            setAssigning(false);
+        }
+    };
+
+    const userColumns = [
+        { title: 'Name', dataIndex: 'name', key: 'name' },
+        { title: 'Email', dataIndex: 'email', key: 'email' },
+        { title: 'Role', dataIndex: 'role', key: 'role', render: (text: string) => <Tag>{text.toUpperCase()}</Tag> }
     ];
 
     return (
@@ -150,9 +207,9 @@ const ExamGenerator = () => {
                             <Button type="primary" key="dashboard" onClick={() => navigate('/admin/dashboard')}>
                                 Go to Dashboard
                             </Button>,
-                            <Button key="new" onClick={() => { setCurrentStep(0); form.resetFields(); setGeneratedExam(null); }}>
-                                Create Another
-                            </Button>,
+                             <Button key="next" type="default" onClick={() => setCurrentStep(2)} disabled={generatedExam.status !== 'completed'}>
+                                Proceed to Assign
+                            </Button>
                         ]}
                     />
                     
@@ -255,6 +312,41 @@ const ExamGenerator = () => {
                         </div>
                     </Card>
                 </div>
+            )}
+
+            {currentStep === 2 && (
+                <Card title="Assign to Candidates" className="shadow-md">
+                    <div className="mb-6">
+                         <div className="mb-4">
+                            <label className="block text-gray-700 font-bold mb-2">Submission Deadline:</label>
+                             <DatePicker 
+                                showTime 
+                                className="w-full max-w-xs" 
+                                size="large"
+                                onChange={(date) => setDeadline(date)} 
+                            />
+                         </div>
+                         
+                         <label className="block text-gray-700 font-bold mb-2">Select Candidates:</label>
+                        <Table 
+                            dataSource={users} 
+                            columns={userColumns} 
+                            rowKey="_id"
+                            rowSelection={{
+                                type: 'checkbox',
+                                onChange: (selectedRowKeys) => setSelectedUserIds(selectedRowKeys)
+                            }}
+                            pagination={{ pageSize: 5 }}
+                        />
+                    </div>
+
+                    <div className="flex justify-end space-x-4">
+                        <Button onClick={() => setCurrentStep(1)}>Back</Button>
+                        <Button type="primary" size="large" icon={<CheckCircleOutlined />} onClick={handleAssign} loading={assigning}>
+                            Confirm Assignment
+                        </Button>
+                    </div>
+                </Card>
             )}
         </div>
     );

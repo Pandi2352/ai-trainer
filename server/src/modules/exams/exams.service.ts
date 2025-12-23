@@ -21,8 +21,39 @@ export class ExamsService {
         return exam.save();
     }
 
-    async findAll(): Promise<Exam[]> {
-        return this.examModel.find().populate('questions').sort({ createdAt: -1 }).exec();
+    async findAll(query: any = {}): Promise<any> {
+        const { page = 1, limit = 10, search, domain, difficulty } = query;
+        const skip = (page - 1) * limit;
+
+        const filter: any = {};
+        if (search) {
+            filter.$or = [
+                { title: { $regex: search, $options: 'i' } },
+                { domain: { $regex: search, $options: 'i' } }
+            ];
+        }
+        if (domain) filter.domain = domain;
+        if (difficulty) filter.difficulty = difficulty;
+
+        const [exams, total] = await Promise.all([
+            this.examModel.find(filter)
+                .populate('questions')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(Number(limit))
+                .exec(),
+            this.examModel.countDocuments(filter).exec()
+        ]);
+
+        return {
+            data: exams,
+            meta: {
+                total,
+                page: Number(page),
+                limit: Number(limit),
+                pages: Math.ceil(total / limit)
+            }
+        };
     }
 
     async findOne(id: string): Promise<Exam> {
