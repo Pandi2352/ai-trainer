@@ -12,11 +12,11 @@ const Login = () => {
     setLoading(true);
     setError('');
     try {
-      await authService.login(values.email, values.password);
+      await authService.login({ email: values.email, password: values.password });
       navigate('/');
       window.location.reload();
     } catch (err: any) {
-      setError('Login failed. Please check your credentials.');
+      setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }

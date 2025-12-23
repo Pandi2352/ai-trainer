@@ -27,10 +27,20 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
-        // We can handle 401 Unauthorized logout logic here if needed
-        if (error.response && error.response.status === 401) {
-            // localStorage.removeItem('user');
-            // window.location.href = '/login';
+        // Global Error Handling
+        if (error.response) {
+            // Server responded with a status code
+            const { status, data } = error.response;
+
+            // Allow component to handle 400/409/401 explicitly if needed, 
+            // but we can also attach the formatted message to the error object
+            error.message = data.message || error.message;
+
+            if (status === 401) {
+                // Optional: Auto logout
+                // localStorage.removeItem('user');
+                // window.location.href = '/login';
+            }
         }
         return Promise.reject(error);
     }

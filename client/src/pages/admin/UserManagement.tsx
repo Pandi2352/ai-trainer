@@ -41,8 +41,15 @@ const UserManagement = () => {
             setIsModalOpen(false);
             form.resetFields();
             fetchUsers();
-        } catch (error) {
-            message.error('Failed to send invitation');
+            fetchUsers();
+        } catch (error: any) {
+            // Error message from interceptor is already formatted
+            // But we can be specific if needed
+            if (error.response?.status === 409) {
+                 message.error('User with this email already exists!');
+            } else {
+                 message.error(error.message || 'Failed to send invitation');
+            }
         }
     };
 

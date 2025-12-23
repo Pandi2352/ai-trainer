@@ -48,14 +48,28 @@ const ContentUpload = () => {
     const file = fileList[0];
     if (!file) return;
 
+    // Client-side Validation
+    const isPdfOrDocx = file.type === 'application/pdf' || 
+                       file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    if (!isPdfOrDocx) {
+        message.error('You can only upload PDF or DOCX files!');
+        return;
+    }
+
+    const isLt5M = file.size / 1024 / 1024 < 5;
+    if (!isLt5M) {
+        message.error('File must be smaller than 5MB!');
+        return;
+    }
+
     setUploading(true);
     try {
       await contentService.uploadFile(file as File);
       message.success('upload successfully.');
       setFileList([]);
       fetchContent();
-    } catch (error) {
-      message.error('upload failed.');
+    } catch (error: any) {
+      message.error(error.message || 'Upload failed');
     } finally {
       setUploading(false);
     }

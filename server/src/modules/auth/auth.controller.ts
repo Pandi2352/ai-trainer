@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Request, Get } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request, Get, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
@@ -19,7 +19,7 @@ export class AuthController {
         // Let's do it properly:
         const validUser = await this.authService.validateUser(req.email, req.password);
         if (!validUser) {
-            return { message: 'Invalid credentials' }; // or Throw UnauthorizedException
+            throw new UnauthorizedException('Invalid credentials');
         }
         return this.authService.login(validUser); // validUser should have _id
     }
