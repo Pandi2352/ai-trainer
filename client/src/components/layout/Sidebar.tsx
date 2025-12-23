@@ -4,7 +4,8 @@ import {
   UploadOutlined, 
   DashboardOutlined, 
   LogoutOutlined,
-  ProfileOutlined
+  ProfileOutlined,
+  RobotOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -34,12 +35,11 @@ const Sidebar = () => {
       icon: <UploadOutlined />,
       label: 'Content Upload',
     },
-    // Future Question Engine Item
-    // {
-    //   key: '/admin/questions',
-    //   icon: <QuestionCircleOutlined />,
-    //   label: 'Questions',
-    // },
+    {
+      key: '/admin/exams/create',
+      icon: <RobotOutlined />,
+      label: 'Generate Exam',
+    },
   ];
 
   const traineeItems = [

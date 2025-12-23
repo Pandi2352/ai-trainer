@@ -9,6 +9,8 @@ import { HealthModule } from './modules/health/health.module';
 import { DomainModule } from './modules/domain/domain.module';
 import { InviteModule } from './modules/invite/invite.module';
 import { ContentModule } from './modules/content/content.module';
+import { AiModule } from './modules/ai/ai.module';
+import { ExamsModule } from './modules/exams/exams.module';
 
 @Module({
   imports: [
@@ -28,6 +30,9 @@ import { ContentModule } from './modules/content/content.module';
     DomainModule,
     InviteModule,
     ContentModule,
+    ContentModule,
+    AiModule,
+    ExamsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
