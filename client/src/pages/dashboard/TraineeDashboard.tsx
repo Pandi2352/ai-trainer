@@ -18,6 +18,7 @@ const TraineeDashboard = () => {
         <h1 className="text-2xl font-bold">Trainee Dashboard</h1>
         <div className="flex items-center gap-4">
             <span>Welcome, {user?.user?.name} (Trainee)</span>
+            <Button onClick={() => navigate('/profile')}>Profile</Button>
             <Button onClick={handleLogout}>Logout</Button>
         </div>
       </div>

@@ -18,6 +18,9 @@ const AdminDashboard = () => {
         <h1 className="text-2xl font-bold">Admin Dashboard</h1>
         <div className="flex items-center gap-4">
             <span>Welcome, {user?.user?.name} (Admin)</span>
+            <Button onClick={() => navigate('/admin/users')}>Users</Button>
+            <Button onClick={() => navigate('/admin/content')}>Upload Content</Button>
+            <Button onClick={() => navigate('/profile')}>Profile</Button>
             <Button onClick={handleLogout} danger>Logout</Button>
         </div>
       </div>

@@ -1,13 +1,17 @@
-import axios from 'axios';
-
-const API_URL = 'http://localhost:3000';
+import axiosInstance from '../api/axiosInstance';
+import { ENDPOINTS } from '../api/endpoints';
 
 export const authService = {
-    login: async (email: string, password: string) => {
-        const response = await axios.post(`${API_URL}/auth/login`, { email, password });
+    login: async (credentials: any) => {
+        const response = await axiosInstance.post(ENDPOINTS.AUTH.LOGIN, credentials);
         if (response.data.access_token) {
             localStorage.setItem('user', JSON.stringify(response.data));
         }
+        return response.data;
+    },
+
+    register: async (userData: any) => {
+        const response = await axiosInstance.post(ENDPOINTS.AUTH.REGISTER, userData);
         return response.data;
     },
 
@@ -19,12 +23,4 @@ export const authService = {
         const userStr = localStorage.getItem('user');
         return userStr ? JSON.parse(userStr) : null;
     },
-
-    register: async (name: string, email: string, password: string) => {
-        return axios.post(`${API_URL}/auth/register`, {
-            name,
-            email,
-            password,
-        });
-    }
 };

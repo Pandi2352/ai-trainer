@@ -7,6 +7,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { HealthModule } from './modules/health/health.module';
 import { DomainModule } from './modules/domain/domain.module';
+import { InviteModule } from './modules/invite/invite.module';
+import { ContentModule } from './modules/content/content.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { DomainModule } from './modules/domain/domain.module';
     UsersModule,
     HealthModule,
     DomainModule,
+    InviteModule,
+    ContentModule,
   ],
   controllers: [AppController],
   providers: [AppService],
