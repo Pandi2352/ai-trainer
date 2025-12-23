@@ -1,16 +1,8 @@
-import { Card, Button } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { Card } from 'antd';
 import { authService } from '../../services/auth.service';
 
 const AdminDashboard = () => {
-  const navigate = useNavigate();
   const user = authService.getCurrentUser();
-
-  const handleLogout = () => {
-    authService.logout();
-    navigate('/login');
-    window.location.reload();
-  };
 
   return (
     <div className="p-8">
@@ -18,10 +10,6 @@ const AdminDashboard = () => {
         <h1 className="text-2xl font-bold">Admin Dashboard</h1>
         <div className="flex items-center gap-4">
             <span>Welcome, {user?.user?.name} (Admin)</span>
-            <Button onClick={() => navigate('/admin/users')}>Users</Button>
-            <Button onClick={() => navigate('/admin/content')}>Upload Content</Button>
-            <Button onClick={() => navigate('/profile')}>Profile</Button>
-            <Button onClick={handleLogout} danger>Logout</Button>
         </div>
       </div>
       

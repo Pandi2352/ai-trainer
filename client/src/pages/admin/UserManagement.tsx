@@ -37,7 +37,7 @@ const UserManagement = () => {
     const handleInvite = async (values: any) => {
         try {
             await usersService.inviteUser(values.email, values.role);
-            message.success('Invitation sent successfully');
+            message.success('User added successfully');
             setIsModalOpen(false);
             form.resetFields();
             fetchUsers();
@@ -48,7 +48,7 @@ const UserManagement = () => {
             if (error.response?.status === 409) {
                  message.error('User with this email already exists!');
             } else {
-                 message.error(error.message || 'Failed to send invitation');
+                 message.error(error.message || 'Failed to add user');
             }
         }
     };
@@ -91,14 +91,14 @@ const UserManagement = () => {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">User Management</h1>
                 <Button type="primary" onClick={() => setIsModalOpen(true)}>
-                    Invite User
+                    Add User
                 </Button>
             </div>
 
             <Table dataSource={users} columns={columns} loading={loading} rowKey="_id" />
 
             <Modal
-                title="Invite New User"
+                title="Add New User"
                 open={isModalOpen}
                 onCancel={() => setIsModalOpen(false)}
                 footer={null}
@@ -123,7 +123,7 @@ const UserManagement = () => {
                     </Form.Item>
                     <Form.Item>
                         <Button type="primary" htmlType="submit" block>
-                            Send Invitation
+                            Add User
                         </Button>
                     </Form.Item>
                 </Form>

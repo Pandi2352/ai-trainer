@@ -1,11 +1,14 @@
 import { BrowserRouter as Router } from 'react-router-dom';
 import AppRoutes from './routes/AppRoutes';
-import 'antd/dist/reset.css'; // Ensure AntD styles are reset if needed (v5 handles this automatically usually)
+import { AuthProvider } from './context/AuthContext';
+import 'antd/dist/reset.css';
 
 function App() {
   return (
     <Router>
-      <AppRoutes />
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
     </Router>
   );
 }

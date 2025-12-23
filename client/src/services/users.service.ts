@@ -4,7 +4,7 @@ import { ENDPOINTS } from '../api/endpoints';
 export const usersService = {
     getAllUsers: async () => {
         const response = await axiosInstance.get(ENDPOINTS.USERS.LIST);
-        return response.data;
+        return response.data.data || response.data;
     },
 
     updateRole: async (id: string, role: string) => {
@@ -14,7 +14,7 @@ export const usersService = {
 
     getProfile: async () => {
         const response = await axiosInstance.get(ENDPOINTS.USERS.PROFILE);
-        return response.data;
+        return response.data.data || response.data;
     },
 
     updateProfile: async (data: any) => {
@@ -24,6 +24,11 @@ export const usersService = {
 
     inviteUser: async (email: string, role: string) => {
         const response = await axiosInstance.post(ENDPOINTS.INVITE.SEND, { email, role });
+        return response.data;
+    },
+
+    changePassword: async (password: string) => {
+        const response = await axiosInstance.patch(`${ENDPOINTS.USERS.PROFILE}/password`, { password });
         return response.data;
     },
 };

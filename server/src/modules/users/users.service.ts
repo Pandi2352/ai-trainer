@@ -33,4 +33,8 @@ export class UsersService {
         }
         return updatedUser.toObject() as User;
     }
+
+    async setPassword(id: string, hash: string): Promise<User> {
+        return this.update(id, { password: hash });
+    }
 }

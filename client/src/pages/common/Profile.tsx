@@ -32,7 +32,7 @@ const Profile = () => {
     };
 
     return (
-        <div className="flex justify-center p-8">
+        <div className="flex flex-col items-center p-8 gap-6">
             <Card title="My Profile" className="w-full max-w-md shadow-md">
                 <Form form={form} layout="vertical" onFinish={onFinish}>
                     <Form.Item label="Email" name="email">
@@ -49,6 +49,41 @@ const Profile = () => {
                     <Form.Item>
                         <Button type="primary" htmlType="submit" loading={loading} block>
                             Update Profile
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Card>
+
+            <Card title="Change Password" className="w-full max-w-md shadow-md mt-6">
+                <Form layout="vertical" onFinish={async (values) => {
+                    if (values.password !== values.confirmPassword) {
+                        message.error('Passwords do not match');
+                        return;
+                    }
+                    try {
+                        await usersService.changePassword(values.password);
+                        message.success('Password changed successfully');
+                    } catch (error) {
+                        message.error('Failed to change password');
+                    }
+                }}>
+                    <Form.Item
+                        label="New Password"
+                        name="password"
+                        rules={[{ required: true, message: 'Please input new password!' }]}
+                    >
+                        <Input.Password />
+                    </Form.Item>
+                    <Form.Item
+                        label="Confirm Password"
+                        name="confirmPassword"
+                        rules={[{ required: true, message: 'Please confirm password!' }]}
+                    >
+                        <Input.Password />
+                    </Form.Item>
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit" block>
+                            Change Password
                         </Button>
                     </Form.Item>
                 </Form>

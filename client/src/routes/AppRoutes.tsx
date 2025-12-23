@@ -6,35 +6,46 @@ import UserManagement from '../pages/admin/UserManagement';
 import Profile from '../pages/common/Profile';
 import LandingPage from '../pages/LandingPage';
 import ContentUpload from '../pages/admin/ContentUpload';
-import { authService } from '../services/auth.service';
+import DashboardLayout from '../components/layout/DashboardLayout';
+import { useAuth } from '../context/AuthContext';
 
 const AppRoutes = () => {
-  const userSession = authService.getCurrentUser();
-  const user = userSession?.user;
+  const { user, isAuthenticated } = useAuth();
 
-  const getDashboard = () => {
-    if (user?.role === 'admin') return <AdminDashboard />;
-    return <TraineeDashboard />;
-  };
+
+
 
   return (
     <Routes>
-      <Route path="/" element={!userSession ? <LandingPage /> : <Navigate to="/dashboard" />} />
-      <Route path="/login" element={!userSession ? <Login /> : <Navigate to="/dashboard" />} />
+      {/* Public Routes */}
+      <Route path="/" element={!isAuthenticated ? <LandingPage /> : <Navigate to="/dashboard" />} />
+      <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />} />
       
-      {/* Protected Routes */}
-      <Route path="/dashboard" element={userSession ? getDashboard() : <Navigate to="/login" />} />
-      <Route path="/profile" element={userSession ? <Profile /> : <Navigate to="/login" />} />
-      
-      {/* Admin Routes */}
-      <Route 
-        path="/admin/users" 
-        element={userSession?.role === 'admin' ? <UserManagement /> : <Navigate to="/dashboard" />} 
-      />
-      <Route 
-        path="/admin/content" 
-        element={userSession?.role === 'admin' ? <ContentUpload /> : <Navigate to="/dashboard" />} 
-      />
+      {/* Protected Routes (Wrapped in DashboardLayout) */}
+      {/* Protected Routes (Wrapped in DashboardLayout) */}
+      <Route element={<DashboardLayout />}>
+        <Route path="/dashboard" element={
+            user?.role === 'admin' ? <Navigate to="/admin/dashboard" /> : <Navigate to="/trainee/dashboard" />
+        } />
+        <Route path="/admin/dashboard" element={
+            user?.role === 'admin' ? <AdminDashboard /> : <Navigate to="/dashboard" />
+        } />
+        <Route path="/trainee/dashboard" element={
+             <TraineeDashboard />
+        } />
+
+        <Route path="/profile" element={<Profile />} />
+        
+        {/* Admin Routes */}
+        <Route 
+          path="/admin/users" 
+          element={user?.role === 'admin' ? <UserManagement /> : <Navigate to="/dashboard" />} 
+        />
+        <Route 
+          path="/admin/content" 
+          element={user?.role === 'admin' ? <ContentUpload /> : <Navigate to="/dashboard" />} 
+        />
+      </Route>
       
       {/* Catch all */}
       <Route path="*" element={<Navigate to="/" />} />

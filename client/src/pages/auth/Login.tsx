@@ -1,20 +1,21 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../../services/auth.service';
+import { useAuth } from '../../context/AuthContext';
 import { Button, Form, Input, Card, Alert } from 'antd';
 
 const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const onFinish = async (values: any) => {
     setLoading(true);
     setError('');
     try {
-      await authService.login({ email: values.email, password: values.password });
-      navigate('/');
-      window.location.reload();
+      await login({ email: values.email, password: values.password });
+      navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Login failed. Please check your credentials.');
     } finally {

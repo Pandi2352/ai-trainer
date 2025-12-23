@@ -1,4 +1,5 @@
 import { Controller, Get, Patch, Body, Param, UseGuards, Request } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -41,5 +42,16 @@ export class UsersController {
         delete updateData.role;
         delete updateData.password;
         return this.usersService.update(req.user.userId, updateData);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Patch('profile/password')
+    @ApiOperation({ summary: 'Change password' })
+    async changePassword(@Request() req, @Body() body: any) {
+        const { password } = body;
+        // In a real app, validate old password here
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(password, salt);
+        return this.usersService.setPassword(req.user.userId, hash);
     }
 }

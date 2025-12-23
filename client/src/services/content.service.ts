@@ -17,11 +17,11 @@ export const contentService = {
 
     getAllContent: async () => {
         const response = await axiosInstance.get('/content');
-        return response.data;
+        return response.data.data || response.data;
     },
 
     getContentById: async (id: string) => {
         const response = await axiosInstance.get(`/content/${id}`);
-        return response.data;
+        return response.data.data || response.data;
     },
 };
