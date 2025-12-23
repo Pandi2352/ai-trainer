@@ -1,0 +1,23 @@
+# Common
+node_modules
+dist
+build
+coverage
+*.log
+.DS_Store
+.vscode
+.idea
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# NestJS (Server)
+server/dist
+server/*.tsbuildinfo
+
+# React (Client)
+client/dist
+client/dist-ssr
+client/coverage
