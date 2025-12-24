@@ -138,4 +138,8 @@ export class ExamsService {
             await this.examModel.findByIdAndUpdate(examId, { status: 'failed' });
         }
     }
+
+    async count(filter: any = {}): Promise<number> {
+        return this.examModel.countDocuments(filter).exec();
+    }
 }

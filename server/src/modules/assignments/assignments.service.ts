@@ -7,12 +7,17 @@ import { NotificationsService } from '../notifications/notifications.service';
 
 import { AiService } from '../ai/ai.service';
 
+import { ExamsService } from '../exams/exams.service';
+import { UsersService } from '../users/users.service';
+
 @Injectable()
 export class AssignmentsService {
     constructor(
         @InjectModel(Assignment.name) private assignmentModel: Model<AssignmentDocument>,
         private readonly notificationsService: NotificationsService,
-        private readonly aiService: AiService
+        private readonly aiService: AiService,
+        private readonly examsService: ExamsService,
+        private readonly usersService: UsersService
     ) { }
 
     async assignExamToUsers(examId: string, userIds: string[], deadline: Date, adminId: string) {
@@ -256,12 +261,119 @@ export class AssignmentsService {
         const passCount = scores.filter(score => (score / totalMarks) * 100 >= 50).length;
         const passRate = Math.round((passCount / completedCount) * 100);
 
+        // Calculate Score Distribution (e.g., 0-20, 21-40, 41-60, 61-80, 81-100)
+        // Adjust ranges based on totalMarks if possible, or just use percentage buckets.
+        const distribution = [
+            { range: '0-20%', count: 0 },
+            { range: '21-40%', count: 0 },
+            { range: '41-60%', count: 0 },
+            { range: '61-80%', count: 0 },
+            { range: '81-100%', count: 0 }
+        ];
+
+        scores.forEach(score => {
+            const percentage = (score / totalMarks) * 100;
+            if (percentage <= 20) distribution[0].count++;
+            else if (percentage <= 40) distribution[1].count++;
+            else if (percentage <= 60) distribution[2].count++;
+            else if (percentage <= 80) distribution[3].count++;
+            else distribution[4].count++;
+        });
+
+        // Recent Activity
+        const recentActivity = await this.assignmentModel.find({
+            ...matchFilter,
+            status: { $in: ['completed', 'submitted'] }
+        })
+            .sort({ completedAt: -1 })
+            .limit(5)
+            .populate('assignedTo', 'name email')
+            .select('score completedAt assignedTo')
+            .exec();
+
         return {
             totalAssigned,
             completed: completedCount,
             averageScore,
             passRate,
-            highestScore: maxScore
+            highestScore: maxScore,
+            scoreDistribution: distribution,
+            recentActivity
+        };
+    }
+
+    async getDashboardStats() {
+        const [
+            totalTrainees,
+            totalAdmins,
+            totalExams,
+            totalAssignments,
+            completedAssignments
+        ] = await Promise.all([
+            this.usersService.count({ role: 'trainee' }),
+            this.usersService.count({ role: 'admin' }),
+            this.examsService.count(),
+            this.assignmentModel.countDocuments(),
+            this.assignmentModel.countDocuments({ status: { $in: ['completed', 'submitted'] } })
+        ]);
+
+        const pendingAssignments = totalAssignments - completedAssignments;
+
+        // Recent Global Activity (Last 5 completed)
+        const recentActivity = await this.assignmentModel.find({ status: { $in: ['completed', 'submitted'] } })
+            .sort({ completedAt: -1 })
+            .limit(5)
+            .populate('assignedTo', 'name email')
+            .populate('exam', 'title totalMarks')
+            .select('score completedAt exam assignedTo')
+            .exec();
+
+        // Calculate Weekly Activity (Assignments Completed per Day for last 7 days)
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        const activityData = await this.assignmentModel.aggregate([
+            {
+                $match: {
+                    status: { $in: ['completed', 'submitted'] },
+                    completedAt: { $gte: sevenDaysAgo }
+                }
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$completedAt" } },
+                    count: { $sum: 1 }
+                }
+            },
+            { $sort: { _id: 1 } }
+        ]);
+
+        // Normalize Activity Data (Ensure all 7 days are present)
+        const weeklyActivity: { date: string; day: string; count: any; }[] = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0];
+            const found = activityData.find(a => a._id === dateStr);
+            weeklyActivity.push({
+                date: dateStr, // e.g., "2023-10-25"
+                day: d.toLocaleDateString('en-US', { weekday: 'short' }), // "Mon"
+                count: found ? found.count : 0
+            });
+        }
+
+        return {
+            totalTrainees,
+            totalAdmins,
+            totalExams,
+            totalAssignments,
+            stats: {
+                completed: completedAssignments,
+                pending: pendingAssignments,
+                completionRate: totalAssignments > 0 ? Math.round((completedAssignments / totalAssignments) * 100) : 0
+            },
+            recentActivity,
+            weeklyActivity
         };
     }
 

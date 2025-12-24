@@ -66,4 +66,8 @@ export class UsersService {
     async setPassword(id: string, hash: string): Promise<User> {
         return this.update(id, { password: hash });
     }
+
+    async count(filter: any = {}): Promise<number> {
+        return this.userModel.countDocuments(filter).exec();
+    }
 }

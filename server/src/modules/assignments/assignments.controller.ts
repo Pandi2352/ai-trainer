@@ -54,6 +54,13 @@ export class AssignmentsController {
         return this.assignmentsService.getExamAnalytics(examId);
     }
 
+    @Get('dashboard/stats')
+    @Roles('admin')
+    @ApiOperation({ summary: 'Get global dashboard stats' })
+    getDashboardStats() {
+        return this.assignmentsService.getDashboardStats();
+    }
+
     @Post(':id/submit')
     @Roles('trainee')
     @ApiOperation({ summary: 'Submit an exam assignment' })

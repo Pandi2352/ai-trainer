@@ -6,6 +6,7 @@ import axiosInstance from '../../api/axiosInstance';
 import DataTable from '../../components/common/DataTable';
 import dayjs from 'dayjs';
 import { usersService } from '../../services/users.service';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const { Option } = Select;
 
@@ -41,12 +42,23 @@ const ExamDetails = () => {
     const [refreshCandidates, setRefreshCandidates] = useState(0);
 
     // Analytics Calculation
-    const [analytics, setAnalytics] = useState({
+    const [analytics, setAnalytics] = useState<{
+        totalAssigned: number;
+        completed: number;
+        averageScore: number;
+        passRate: number;
+        highestScore: number;
+        lowestScore?: number;
+        scoreDistribution?: any[];
+        recentActivity?: any[];
+    }>({
         totalAssigned: 0,
         completed: 0,
         averageScore: 0,
         passRate: 0,
-        highestScore: 0
+        highestScore: 0,
+        scoreDistribution: [],
+        recentActivity: []
     });
 
 
@@ -501,83 +513,147 @@ const ExamDetails = () => {
 
 
     const analyticsTab = (
-        <div className="p-6">
-            <div className="flex justify-end mb-4">
-                <Button icon={<BarChartOutlined />} onClick={fetchAnalytics}>Refresh Data</Button>
+        <div className="p-6 space-y-8 animate-fade-in-up">
+            <div className="flex justify-between items-center">
+                 <h2 className="text-xl font-bold text-gray-800">Exam Performance Analytics</h2>
+                 <Button icon={<BarChartOutlined />} onClick={fetchAnalytics} loading={loading}>Refresh Data</Button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <Card className="text-center border-0 shadow-sm bg-blue-50">
+
+            {/* Key Metrics Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <Card className="text-center border-0 shadow-sm bg-gradient-to-br from-blue-50 to-white hover:shadow-md transition-shadow">
                     <Statistic 
-                        title="Total Assigned" 
+                        title={<span className="text-gray-600 font-semibold">Total Assigned</span>}
                         value={analytics.totalAssigned} 
-                        prefix={<UserOutlined />} 
-                        valueStyle={{ color: '#3b82f6' }}
+                        prefix={<UserOutlined className="mr-2" />} 
+                        valueStyle={{ color: '#3b82f6', fontWeight: 'bold' }}
                     />
                 </Card>
-                <Card className="text-center border-0 shadow-sm bg-green-50">
+                <Card className="text-center border-0 shadow-sm bg-gradient-to-br from-green-50 to-white hover:shadow-md transition-shadow">
                     <Statistic 
-                        title="Completion Rate" 
+                        title={<span className="text-gray-600 font-semibold">Completion Rate</span>}
                         value={analytics.totalAssigned > 0 ? Math.round((analytics.completed / analytics.totalAssigned) * 100) : 0} 
                         suffix="%" 
-                        prefix={<FileTextOutlined />} 
-                        valueStyle={{ color: '#22c55e' }}
+                        prefix={<FileTextOutlined className="mr-2" />} 
+                        valueStyle={{ color: '#22c55e', fontWeight: 'bold' }}
                     />
                 </Card>
-                <Card className="text-center border-0 shadow-sm bg-yellow-50">
+                <Card className="text-center border-0 shadow-sm bg-gradient-to-br from-yellow-50 to-white hover:shadow-md transition-shadow">
                      <Statistic 
-                        title="Average Score" 
+                        title={<span className="text-gray-600 font-semibold">Average Score</span>}
                         value={analytics.averageScore} 
-                        suffix={`/ ${exam?.totalMarks || 0}`}
-                        prefix={<BarChartOutlined />} 
-                        valueStyle={{ color: '#eab308' }}
+                        suffix={<span className="text-sm text-gray-400">/ {exam?.totalMarks || 0}</span>}
+                        prefix={<BarChartOutlined className="mr-2" />} 
+                        valueStyle={{ color: '#eab308', fontWeight: 'bold' }}
                     />
                 </Card>
-                <Card className="text-center border-0 shadow-sm bg-purple-50">
+                <Card className="text-center border-0 shadow-sm bg-gradient-to-br from-purple-50 to-white hover:shadow-md transition-shadow">
                     <Statistic 
-                        title="Pass Rate" 
+                        title={<span className="text-gray-600 font-semibold">Pass Rate</span>}
                         value={analytics.passRate} 
                         suffix="%" 
-                        prefix={<TrophyOutlined />} 
-                        valueStyle={{ color: '#a855f7' }}
+                        prefix={<TrophyOutlined className="mr-2" />} 
+                        valueStyle={{ color: '#a855f7', fontWeight: 'bold' }}
                     />
                 </Card>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <Card title="Performance Overview" className="shadow-sm border-gray-100 rounded-xl">
-                    <div className="flex justify-around items-center py-8">
-                        <div className="text-center">
-                            <Progress type="circle" percent={analytics.passRate} size={120} strokeColor="#22c55e" />
-                            <p className="mt-2 text-gray-500 font-medium">Pass Rate</p>
-                        </div>
-                        <div className="text-center">
-                            <Progress 
-                                type="circle" 
-                                percent={analytics.totalAssigned > 0 ? Math.round((analytics.completed / analytics.totalAssigned) * 100) : 0} 
-                                size={120} 
-                                strokeColor="#3b82f6" 
-                            />
-                            <p className="mt-2 text-gray-500 font-medium">Completion</p>
-                        </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                 {/* Score Distribution Chart */}
+                <Card title="Score Distribution" className="shadow-sm border-gray-100 rounded-xl">
+                    <div className="h-64 w-full">
+                         {analytics.scoreDistribution ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={analytics.scoreDistribution}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                                    <XAxis dataKey="range" axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 12}} dy={10} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 12}} />
+                                    <Tooltip 
+                                        cursor={{fill: '#f9fafb'}}
+                                        contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'}}
+                                    />
+                                    <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={40} name="Trainees" />
+                                </BarChart>
+                            </ResponsiveContainer>
+                         ) : (
+                             <div className="h-full flex items-center justify-center text-gray-400">No score data available</div>
+                         )}
                     </div>
                 </Card>
 
-                 <Card title="Score Highlights" className="shadow-sm border-gray-100 rounded-xl">
-                    <div className="space-y-6 py-4">
-                         <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Highest Score Achieved</span>
-                            <span className="text-2xl font-bold text-emerald-600">{analytics.highestScore} <span className="text-sm text-gray-400">/ {exam?.totalMarks}</span></span>
+                 {/* Pass vs Fail Pie Chart */}
+                <Card title="Performance Overview" className="shadow-sm border-gray-100 rounded-xl">
+                    <div className="flex justify-around items-center h-64">
+                         <div className="text-center">
+                            <Progress 
+                                type="circle" 
+                                percent={analytics.passRate} 
+                                size={140} 
+                                strokeColor={{ '0%': '#22c55e', '100%': '#10b981' }} 
+                                strokeWidth={10}
+                            />
+                            <p className="mt-4 text-gray-500 font-medium">Pass Rate</p>
+                            <p className="text-xs text-gray-400">Based on 50% score</p>
                         </div>
-                        <Progress percent={Math.round((analytics.highestScore / (exam?.totalMarks || 1)) * 100)} showInfo={false} strokeColor="#10b981" />
-                        
-                        <div className="flex justify-between items-center mt-4">
-                            <span className="text-gray-600">Average Class Score</span>
-                            <span className="text-2xl font-bold text-amber-500">{analytics.averageScore} <span className="text-sm text-gray-400">/ {exam?.totalMarks}</span></span>
+                        <div className="w-px h-32 bg-gray-100 mx-4 hidden md:block"></div>
+                        <div className="text-center">
+                             <div className="mb-4">
+                                <p className="text-gray-500 text-sm mb-1">Highest Score</p>
+                                <span className="text-3xl font-bold text-gray-800">{analytics.highestScore}</span>
+                                <span className="text-gray-400 text-sm"> / {exam?.totalMarks}</span>
+                             </div>
+                             <div>
+                                <p className="text-gray-500 text-sm mb-1">Lowest Score</p>
+                                <span className="text-xl font-bold text-gray-600">{analytics.lowestScore || 0}</span>
+                                <span className="text-gray-400 text-xs"> / {exam?.totalMarks}</span>
+                             </div>
                         </div>
-                        <Progress percent={Math.round((analytics.averageScore / (exam?.totalMarks || 1)) * 100)} showInfo={false} strokeColor="#f59e0b" />
                     </div>
                 </Card>
             </div>
+
+            {/* Recent Activity Table */}
+            <Card title="Recent Submissions" className="shadow-sm border-gray-100 rounded-xl overflow-hidden" bodyStyle={{padding: 0}}>
+                <Table 
+                    dataSource={analytics.recentActivity || []} 
+                    rowKey="_id" 
+                    pagination={false}
+                    columns={[
+                        { 
+                            title: 'Trainee', 
+                            dataIndex: ['assignedTo', 'name'], 
+                            key: 'name',
+                            render: (text: string) => <span className="font-medium text-gray-700">{text}</span>
+                        },
+                        { 
+                            title: 'Submitted At', 
+                            dataIndex: 'completedAt', 
+                            key: 'completedAt',
+                            render: (date: string) => <span className="text-gray-500">{dayjs(date).format('MMM D, h:mm A')}</span>
+                        },
+                        { 
+                            title: 'Score', 
+                            dataIndex: 'score', 
+                            key: 'score',
+                            render: (score: number) => {
+                                const percentage = (score / (exam?.totalMarks || 1)) * 100;
+                                let color = percentage >= 75 ? 'green' : percentage >= 50 ? 'orange' : 'red';
+                                return <Tag color={color} className="font-bold border-0 px-2 py-1 text-sm">{score} / {exam?.totalMarks}</Tag>;
+                            }
+                        },
+                        {
+                            title: 'Action',
+                            key: 'action',
+                            render: (_: any, record: any) => (
+                                <Button size="small" type="link" onClick={() => navigate(`/trainee/exam/${record._id}/result`)}>View Result</Button>
+                            )
+                        }
+                    ]}
+                />
+                 {(!analytics.recentActivity || analytics.recentActivity.length === 0) && (
+                    <div className="p-8 text-center text-gray-400">No recent activity</div>
+                 )}
+            </Card>
         </div>
     );
 
