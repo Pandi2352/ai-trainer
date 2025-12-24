@@ -20,7 +20,7 @@ export class AssignmentsController {
     }
 
     @Get('my')
-    @Roles('user', 'admin')
+    @Roles('trainee', 'admin')
     @ApiOperation({ summary: 'Get assignments for current user' })
     getMyAssignments(@Request() req) {
         return this.assignmentsService.findMyAssignments(req.user.userId);

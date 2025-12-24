@@ -1,19 +1,7 @@
-import { message } from 'antd';
+import { useToast, ToastProvider } from '../../context/ToastContext';
 
-// Initialize message configuration
-message.config({
-  top: 60,
-  duration: 3,
-  maxCount: 3,
-});
+// Re-export for convenience
+export { useToast, ToastProvider };
 
-export const requestMessage = {
-  success: (content: string) => message.success(content),
-  error: (content: string) => message.error(content),
-  warning: (content: string) => message.warning(content),
-  info: (content: string) => message.info(content),
-  loading: (content: string) => message.loading(content),
-};
-
-// Simple Component wrapper if needed for context, though Antd message is static
-export const ToasterContext = () => null;
+// Legacy adapter (optional, if you want to support global calls without hooks, you'd need a different approach, 
+// but for now we stick to hooks).
