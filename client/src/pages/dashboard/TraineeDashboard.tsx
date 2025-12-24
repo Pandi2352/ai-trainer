@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, Table, Tag, Button, Empty, message } from 'antd';
 import { PlayCircleOutlined, CalendarOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import axiosInstance from '../../api/axiosInstance';
@@ -7,6 +8,7 @@ import dayjs from 'dayjs';
 const TraineeDashboard = () => {
     const [assignments, setAssignments] = useState([]);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchAssignments();
@@ -72,10 +74,16 @@ const TraineeDashboard = () => {
                 <Button 
                     type="primary" 
                     icon={record.status === 'completed' ? <CheckCircleOutlined /> : <PlayCircleOutlined />}
-                    disabled={record.status === 'completed' || record.status === 'overdue'}
-                    onClick={() => message.info('Exam attempt flow coming in Sprint 4!')}
+                    disabled={record.status === 'overdue'}
+                    onClick={() => {
+                        if (record.status === 'completed' || record.status === 'submitted') {
+                            navigate(`/trainee/exam/${record._id}/result`); // View Result
+                        } else {
+                            navigate(`/trainee/exam/${record._id}`); // Start Exam
+                        }
+                    }}
                 >
-                    {record.status === 'completed' ? 'View Result' : 'Start Exam'}
+                    {(record.status === 'completed' || record.status === 'submitted') ? 'View Result' : 'Start Exam'}
                 </Button>
             )
         }

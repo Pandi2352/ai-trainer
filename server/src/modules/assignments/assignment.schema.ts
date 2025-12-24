@@ -27,6 +27,12 @@ export class Assignment {
 
     @Prop()
     completedAt: Date;
+
+    @Prop({ type: Object })
+    answers: Record<string, string>; // questionId -> answer
+
+    @Prop({ type: [{ questionId: String, score: Number, feedback: String }] })
+    results: any[];
 }
 
 export const AssignmentSchema = SchemaFactory.createForClass(Assignment);

@@ -83,10 +83,10 @@ const GeneratedExamsList = () => {
             render: (questions: any[]) => <Tag color="purple">{questions?.length || 0}</Tag>
         },
         {
-            title: 'Created At',
+            title: 'Generated On',
             dataIndex: 'createdAt',
             key: 'createdAt',
-            render: (date: string) => <span className="text-gray-600">{dayjs(date).format('MMM D, YYYY HH:mm')}</span>,
+            render: (date: string) => <span className="text-gray-600">{dayjs(date).format('DD MMM YYYY, HH:mm')}</span>,
             sorter: (a: any, b: any) => dayjs(a.createdAt).unix() - dayjs(b.createdAt).unix(),
             defaultSortOrder: 'descend' as const,
         },

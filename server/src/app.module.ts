@@ -12,6 +12,7 @@ import { ContentModule } from './modules/content/content.module';
 import { AiModule } from './modules/ai/ai.module';
 import { ExamsModule } from './modules/exams/exams.module';
 import { AssignmentsModule } from './modules/assignments/assignments.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -33,7 +34,9 @@ import { AssignmentsModule } from './modules/assignments/assignments.module';
     ContentModule,
     AiModule,
     ExamsModule,
+    ExamsModule,
     AssignmentsModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

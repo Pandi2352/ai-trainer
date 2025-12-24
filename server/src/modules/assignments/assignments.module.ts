@@ -5,12 +5,16 @@ import { AssignmentsService } from './assignments.service';
 import { Assignment, AssignmentSchema } from './assignment.schema';
 import { ExamsModule } from '../exams/exams.module';
 import { UsersModule } from '../users/users.module';
+import { NotificationsModule } from '../notifications/notifications.module';
+import { AiModule } from '../ai/ai.module';
 
 @Module({
     imports: [
         MongooseModule.forFeature([{ name: Assignment.name, schema: AssignmentSchema }]),
         ExamsModule,
-        UsersModule
+        UsersModule,
+        NotificationsModule,
+        AiModule
     ],
     controllers: [AssignmentsController],
     providers: [AssignmentsService],

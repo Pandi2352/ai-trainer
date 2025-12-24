@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Tabs, Tag, Button, Statistic, message, Modal, Form, Input, Select, DatePicker, Table } from 'antd';
-import { ArrowLeftOutlined, UserOutlined, FileTextOutlined, BarChartOutlined, EditOutlined, UserAddOutlined, PlusOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, UserOutlined, FileTextOutlined, BarChartOutlined, EditOutlined, UserAddOutlined, PlusOutlined, TrophyOutlined } from '@ant-design/icons';
+import { Card, Tabs, Tag, Button, Statistic, message, Modal, Form, Input, Select, DatePicker, Table, Progress } from 'antd';
 import axiosInstance from '../../api/axiosInstance';
 import DataTable from '../../components/common/DataTable';
 import dayjs from 'dayjs';
@@ -37,6 +37,30 @@ const ExamDetails = () => {
     // Stepper State
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
+    // Refresh trigger for Candidates table
+    const [refreshCandidates, setRefreshCandidates] = useState(0);
+
+    // Analytics Calculation
+    const [analytics, setAnalytics] = useState({
+        totalAssigned: 0,
+        completed: 0,
+        averageScore: 0,
+        passRate: 0,
+        highestScore: 0
+    });
+
+
+
+    const fetchAnalytics = async () => {
+        try {
+            const response = await axiosInstance.get(`/assignments/analytics/${id}`);
+            const analyticsData = response.data?.data || response.data;
+            setAnalytics(analyticsData);
+        } catch (error) {
+            console.error('Failed to load analytics', error);
+        }
+    };
+
     useEffect(() => {
         fetchExamDetails();
     }, [id]);
@@ -54,6 +78,12 @@ const ExamDetails = () => {
             fetchUsers();
         }
     }, [assignModalVisible]);
+
+    useEffect(() => {
+        if (id && exam) fetchAnalytics();
+    }, [id, refreshCandidates, exam]);
+
+  
 
     const fetchExamDetails = async () => {
         try {
@@ -104,6 +134,7 @@ const ExamDetails = () => {
             setAssignModalVisible(false);
             setSelectedUserIds([]);
             setDeadline(null);
+            setRefreshCandidates(prev => prev + 1); // Trigger Refresh
         } catch (error) {
             console.error(error);
             message.error('Failed to assign exam');
@@ -188,6 +219,19 @@ const ExamDetails = () => {
             dataIndex: 'score',
             key: 'score',
             render: (score: number) => score !== undefined ? `${score} / ${exam.totalMarks}` : '-'
+        },
+        {
+            title: 'Action',
+            key: 'action',
+            render: (_: any, record: any) => (
+                <Button 
+                    type="link" 
+                    disabled={record.status !== 'completed' && record.status !== 'submitted'}
+                    onClick={() => navigate(`/trainee/exam/${record._id}/result`)}
+                >
+                    View Report
+                </Button>
+            )
         }
     ];
 
@@ -454,11 +498,86 @@ const ExamDetails = () => {
         </div>
     );
 
+
+
     const analyticsTab = (
-        <div className="text-center py-10">
-            <BarChartOutlined style={{ fontSize: 64, color: '#1890ff' }} />
-            <h3 className="mt-4 text-xl">Analytics Coming Soon</h3>
-            <p className="text-gray-500">Visualization of candidate performance will appear here.</p>
+        <div className="p-6">
+            <div className="flex justify-end mb-4">
+                <Button icon={<BarChartOutlined />} onClick={fetchAnalytics}>Refresh Data</Button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <Card className="text-center border-0 shadow-sm bg-blue-50">
+                    <Statistic 
+                        title="Total Assigned" 
+                        value={analytics.totalAssigned} 
+                        prefix={<UserOutlined />} 
+                        valueStyle={{ color: '#3b82f6' }}
+                    />
+                </Card>
+                <Card className="text-center border-0 shadow-sm bg-green-50">
+                    <Statistic 
+                        title="Completion Rate" 
+                        value={analytics.totalAssigned > 0 ? Math.round((analytics.completed / analytics.totalAssigned) * 100) : 0} 
+                        suffix="%" 
+                        prefix={<FileTextOutlined />} 
+                        valueStyle={{ color: '#22c55e' }}
+                    />
+                </Card>
+                <Card className="text-center border-0 shadow-sm bg-yellow-50">
+                     <Statistic 
+                        title="Average Score" 
+                        value={analytics.averageScore} 
+                        suffix={`/ ${exam?.totalMarks || 0}`}
+                        prefix={<BarChartOutlined />} 
+                        valueStyle={{ color: '#eab308' }}
+                    />
+                </Card>
+                <Card className="text-center border-0 shadow-sm bg-purple-50">
+                    <Statistic 
+                        title="Pass Rate" 
+                        value={analytics.passRate} 
+                        suffix="%" 
+                        prefix={<TrophyOutlined />} 
+                        valueStyle={{ color: '#a855f7' }}
+                    />
+                </Card>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <Card title="Performance Overview" className="shadow-sm border-gray-100 rounded-xl">
+                    <div className="flex justify-around items-center py-8">
+                        <div className="text-center">
+                            <Progress type="circle" percent={analytics.passRate} size={120} strokeColor="#22c55e" />
+                            <p className="mt-2 text-gray-500 font-medium">Pass Rate</p>
+                        </div>
+                        <div className="text-center">
+                            <Progress 
+                                type="circle" 
+                                percent={analytics.totalAssigned > 0 ? Math.round((analytics.completed / analytics.totalAssigned) * 100) : 0} 
+                                size={120} 
+                                strokeColor="#3b82f6" 
+                            />
+                            <p className="mt-2 text-gray-500 font-medium">Completion</p>
+                        </div>
+                    </div>
+                </Card>
+
+                 <Card title="Score Highlights" className="shadow-sm border-gray-100 rounded-xl">
+                    <div className="space-y-6 py-4">
+                         <div className="flex justify-between items-center">
+                            <span className="text-gray-600">Highest Score Achieved</span>
+                            <span className="text-2xl font-bold text-emerald-600">{analytics.highestScore} <span className="text-sm text-gray-400">/ {exam?.totalMarks}</span></span>
+                        </div>
+                        <Progress percent={Math.round((analytics.highestScore / (exam?.totalMarks || 1)) * 100)} showInfo={false} strokeColor="#10b981" />
+                        
+                        <div className="flex justify-between items-center mt-4">
+                            <span className="text-gray-600">Average Class Score</span>
+                            <span className="text-2xl font-bold text-amber-500">{analytics.averageScore} <span className="text-sm text-gray-400">/ {exam?.totalMarks}</span></span>
+                        </div>
+                        <Progress percent={Math.round((analytics.averageScore / (exam?.totalMarks || 1)) * 100)} showInfo={false} strokeColor="#f59e0b" />
+                    </div>
+                </Card>
+            </div>
         </div>
     );
 
@@ -520,6 +639,7 @@ const ExamDetails = () => {
                         children: (
                             <div>
                                 <DataTable 
+                                    key={refreshCandidates}
                                     apiEndpoint={`/assignments/exam/${id}`} 
                                     columns={candidateColumns} 
                                     searchable={false}

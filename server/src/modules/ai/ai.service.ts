@@ -112,4 +112,56 @@ export class AiService {
             }));
         }
     }
+    async gradeExam(questions: any[], userAnswers: Record<string, string>): Promise<any[]> {
+        if (!this.model) {
+            console.warn('AI Model not initialized. Fallback to auto-grading.');
+            return [];
+        }
+
+        const gradingRequests = questions.map(q => {
+            const userAnswer = userAnswers[q._id.toString()] || 'No answer provided';
+            return {
+                questionId: q._id,
+                text: q.text,
+                correctAnswer: q.correctAnswer,
+                userAnswer: userAnswer,
+                points: q.points || 1,
+                type: q.type
+            };
+        });
+
+        // Batch grading or single prompt? Batch is better for context windown but let's do single prompt for now to ensure JSON structure.
+        // Actually, for 5-10 questions, single prompt is fine.
+
+        const prompt = `You are an expert examiner. Grade the following student answers.
+        
+        Format your response as a JSON array of objects with this structure:
+        [
+            {
+                "questionId": "id from input",
+                "score": number (0 to max points),
+                "feedback": "Brief explanation of the score"
+            }
+        ]
+
+        Questions to grade:
+        ${JSON.stringify(gradingRequests, null, 2)}
+        
+        Strictly return ONLY valid JSON.`;
+
+        try {
+            const result = await this.model.generateContent(prompt);
+            const response = await result.response;
+            const text = response.text();
+
+            const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            const grades = JSON.parse(jsonStr);
+
+            return grades;
+        } catch (error) {
+            console.error('AI Grading Failed:', error);
+            // Fallback: return empty array, service will handle fallback grading
+            return [];
+        }
+    }
 }

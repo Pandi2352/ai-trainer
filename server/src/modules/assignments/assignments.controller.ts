@@ -26,6 +26,13 @@ export class AssignmentsController {
         return this.assignmentsService.findMyAssignments(req.user.userId);
     }
 
+    @Get(':id')
+    @Roles('trainee', 'admin')
+    @ApiOperation({ summary: 'Get single assignment details' })
+    getAssignment(@Param('id') id: string, @Request() req) {
+        return this.assignmentsService.getAssignmentById(id, req.user.userId);
+    }
+
     @Get()
     @Roles('admin')
     @ApiOperation({ summary: 'Get all assignments (Admin only)' })
@@ -38,5 +45,19 @@ export class AssignmentsController {
     @ApiOperation({ summary: 'Get assignments by exam ID' })
     getByExamId(@Param('examId') examId: string, @Query() query: any) {
         return this.assignmentsService.findByExamId(examId, query);
+    }
+
+    @Get('analytics/:examId')
+    @Roles('admin')
+    @ApiOperation({ summary: 'Get exam analytics' })
+    getExamAnalytics(@Param('examId') examId: string) {
+        return this.assignmentsService.getExamAnalytics(examId);
+    }
+
+    @Post(':id/submit')
+    @Roles('trainee')
+    @ApiOperation({ summary: 'Submit an exam assignment' })
+    submitExam(@Param('id') id: string, @Body() body: { answers: Record<string, string> }, @Request() req) {
+        return this.assignmentsService.submitExam(id, body.answers, req.user.userId);
     }
 }

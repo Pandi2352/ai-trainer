@@ -11,6 +11,8 @@ import { useAuth } from '../context/AuthContext';
 import ExamGenerator from '../pages/admin/ExamGenerator';
 import ExamDetails from '../pages/admin/ExamDetails';
 import GeneratedExamsList from '../pages/admin/GeneratedExamsList';
+import TraineeExamInterface from '../pages/trainee/TraineeExamInterface';
+import ExamResult from '../pages/trainee/ExamResult';
 
 const AppRoutes = () => {
   const { user, isAuthenticated } = useAuth();
@@ -59,6 +61,16 @@ const AppRoutes = () => {
         <Route 
           path="/admin/exams/:id" 
           element={user?.role === 'admin' ? <ExamDetails /> : <Navigate to="/dashboard" />} 
+        />
+
+        {/* Trainee Routes */}
+        <Route 
+          path="/trainee/exam/:assignmentId" 
+          element={user?.role === 'trainee' ? <TraineeExamInterface /> : <Navigate to="/dashboard" />} 
+        />
+        <Route 
+          path="/trainee/exam/:assignmentId/result" 
+          element={<ExamResult />} 
         />
       </Route>
       
