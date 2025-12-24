@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Table, Button, Tag, Card, Space, Tooltip, Input } from 'antd';
-import { EyeOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { EyeOutlined, PlusOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons';
+import { useNavigate, Link } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
 import dayjs from 'dayjs';
 import { useToast } from '../../context/ToastContext';
@@ -19,9 +19,11 @@ const GeneratedExamsList = () => {
         setLoading(true);
         try {
             const response = await axiosInstance.get('/exams');
-            const data = Array.isArray(response.data) ? response.data : (response.data?.data || []);
-            setExams(data);
-            setFilteredExams(data);
+            const rawData = response.data;
+            // Handle nested structure: response.data.data.data because of NestJS interceptor + pagination
+            const examsList = rawData?.data?.data || (Array.isArray(rawData?.data) ? rawData.data : (Array.isArray(rawData) ? rawData : []));
+            setExams(examsList);
+            setFilteredExams(examsList);
         } catch (error) {
             console.error(error);
             addToast('Failed to load exams', 'error');
@@ -114,11 +116,12 @@ const GeneratedExamsList = () => {
             render: (_: any, record: any) => (
                 <Space>
                     <Tooltip title="View Details">
-                        <Button 
-                            type="text" 
-                            icon={<EyeOutlined className="text-blue-500" />} 
-                            onClick={() => navigate(`/admin/exams/${record._id}`)}
-                        />
+                        <Link to={`/admin/exams/${record._id}`}>
+                            <Button 
+                                type="text" 
+                                icon={<EyeOutlined className="text-blue-500" />} 
+                            />
+                        </Link>
                     </Tooltip>
                 </Space>
             )
@@ -132,15 +135,23 @@ const GeneratedExamsList = () => {
                      <h1 className="text-2xl font-bold text-gray-800">Generated Exams</h1>
                      <p className="text-gray-500">Manage and review all AI-generated assessments.</p>
                 </div>
-                <Button 
-                    type="primary" 
-                    icon={<PlusOutlined />} 
-                    size="large" 
-                    className="bg-primary-600 hover:bg-primary-500 shadow-md shadow-primary-500/30"
-                    onClick={() => navigate('/admin/exams/create')}
-                >
-                    Create New Exam
-                </Button>
+                <div className="flex gap-2">
+                    <Button 
+                         icon={<ReloadOutlined spin={loading} />} 
+                         onClick={() => fetchExams()}
+                    >
+                        Refresh
+                    </Button>
+                    <Button 
+                        type="primary" 
+                        icon={<PlusOutlined />} 
+                        size="large" 
+                        className="bg-primary-600 hover:bg-primary-500 shadow-md shadow-primary-500/30"
+                        onClick={() => navigate('/admin/exams/create')}
+                    >
+                        Create New Exam
+                    </Button>
+                </div>
             </div>
 
             <Card className="shadow-sm border-gray-100 rounded-xl">

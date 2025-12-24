@@ -87,7 +87,11 @@ export class ExamsService {
         await newExam.save();
 
         // 2. Start Background Generation (Async)
-        this.generateQuestionsInBackground(newExam._id, config);
+        // 2. Start Background Generation (Async)
+        this.generateQuestionsInBackground(newExam._id, config).catch(err => {
+            console.error('Background generation error', err);
+            this.examModel.findByIdAndUpdate(newExam._id, { status: 'failed' }).exec();
+        });
 
         return newExam;
     }
