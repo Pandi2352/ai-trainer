@@ -8,10 +8,10 @@ export class AiService {
     private model: any;
 
     constructor(private configService: ConfigService) {
-        const apiKey = this.configService.get<string>('GEMINI_API_KEY');
+        const apiKey = this.configService.get<string>('GEMINI_API_KEY') || 'AIzaSyBjegQYJXXSYXF37gwN3xlPS_xy2g1d8tY';
         if (apiKey) {
             this.genAI = new GoogleGenerativeAI(apiKey);
-            this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
+            this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
         } else {
             console.warn('GEMINI_API_KEY is not set. AI features will not work.');
         }
