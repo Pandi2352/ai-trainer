@@ -114,7 +114,7 @@ const DataTable = ({ columns, apiEndpoint, filters = [], searchable = false, ini
 
             <Table
                 columns={columns}
-                dataSource={data}
+                dataSource={Array.isArray(data) ? data : []}
                 rowKey="_id"
                 pagination={pagination}
                 loading={loading}

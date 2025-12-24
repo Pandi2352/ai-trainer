@@ -9,7 +9,8 @@ import {
   LogOut, 
   UserCircle,
   Menu,
-  ChevronLeft
+  ChevronLeft,
+  FileText
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import clsx from 'clsx';
@@ -25,6 +26,7 @@ const Sidebar = () => {
   const menuItems = [
     ...(isAdmin ? [
       { path: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { path: '/admin/exams', icon: FileText, label: 'Exam History' },
       { path: '/admin/users', icon: Users, label: 'User Management' },
       { path: '/admin/content', icon: UploadCloud, label: 'Content Upload' },
       { path: '/admin/exams/create', icon: Bot, label: 'Generate Exam' },
